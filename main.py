@@ -26,7 +26,7 @@ def search():
         return jsonify({"error": "Query not found."}), 400
 
     results = google_search(query)
-    return jsonify(results)
+    return jsonify(results), 200
 
 if __name__ == '__main__':
     app.run()

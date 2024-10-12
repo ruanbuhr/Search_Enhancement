@@ -10,7 +10,7 @@ def google_search(query):
     response = requests.get(url)
     results = response.json()
 
-    # Extracts the links of the search results
-    links = [item['link'] for item in results.get('items', [])]
+    # Returns a dictionary of links and snippets
+    res_dict = {item['link']: item['snippet'] for item in results.get('items', [])}
 
-    return links
+    return res_dict
