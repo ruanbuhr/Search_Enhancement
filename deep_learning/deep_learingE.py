@@ -24,7 +24,6 @@ snippets = [
     "Regularly review your code and seek feedback from peers to identify areas for improvement.",
     "Develop a solid understanding of foundational concepts in linear algebra and statistics.",
     "Use version control systems like Git to manage your code and collaborate with others.",
-    "water sucks ass",
     "i dont understand coding at all",
     "How can I improve my coding skills for data science?",
     "dino people suck",
@@ -37,20 +36,21 @@ snippets = [
 # Compute embedding for the user query
 query_embedding = model.encode(user_query, convert_to_tensor=True)
 
-# Compute embeddings for the snippets
+#compute embeddings for the snippets
 snippet_embeddings = model.encode(snippets, convert_to_tensor=True)
-# Compute cosine similarity scores
+#compute cosine similarity scores
 
 cosine_scores = util.cos_sim(query_embedding, snippet_embeddings)
 
 # Combine snippets with their scores
 snippet_score_pairs = list(zip(snippets, cosine_scores[0].cpu().numpy()))
 
-# Sort snippets based on similarity scores
+#sort snippets based on similarity scores
 ranked_snippets = sorted(snippet_score_pairs, key=lambda x: x[1], reverse=True)
 for snippet, score in ranked_snippets:
     print(f"Score: {score:.4f} - Snippet: {snippet}")
 
+#organises snippets into decending order
 snippets = [snippet for snippet, score in ranked_snippets]
 
 for snippet in snippets:
