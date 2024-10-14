@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from flask_cors import CORS
 from google_search import *
+from deep_learning import *
 
 load_dotenv()
 
@@ -26,7 +27,10 @@ def search():
         return jsonify({"error": "Query not found."}), 400
 
     results = google_search(query)
-    return jsonify(results), 200
+
+    enhanced_results = rank_search_results(query, results)
+
+    return jsonify(enhanced_results), 200
 
 if __name__ == '__main__':
     app.run()
