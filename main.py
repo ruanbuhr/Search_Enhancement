@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from flask_cors import CORS
 from google_search import *
+from query_summarizer import *
 from deep_learning import *
 
 load_dotenv()
@@ -13,6 +14,8 @@ app = Flask(__name__)
 CORS(app)
 
 port = int(os.getenv('PORT', 8080))
+
+query_summarizer = QuerySummarize()
 
 @app.route('/search', methods=['POST'])
 def search():
@@ -25,8 +28,11 @@ def search():
 
     if query is None:
         return jsonify({"error": "Query not found."}), 400
+    
+    keywords = query_summarizer.summerize(query)
+    keyword_string = ' '.join(keywords)
 
-    results = google_search(query)
+    results = google_search(keyword_string)
 
     enhanced_results = rank_search_results(query, results)
 
