@@ -29,14 +29,19 @@ def search():
     if query is None:
         return jsonify({"error": "Query not found."}), 400
     
-    keywords = query_summarizer.summerize(query)
-    keyword_string = ' '.join(keywords)
+    try:
+        keywords = query_summarizer.summerize(query)
+        keyword_string = ' '.join(keywords)
 
-    results = google_search(keyword_string)
+        results = google_search(keyword_string)
 
-    enhanced_results = rank_search_results(query, results)
+        enhanced_results = rank_search_results(query, results)
 
-    return jsonify(enhanced_results), 200
+        return jsonify(enhanced_results), 200
+    
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({"error": "Internal Server Error"}), 500
 
 if __name__ == '__main__':
     app.run()
