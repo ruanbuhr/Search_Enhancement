@@ -53,3 +53,27 @@ POST http://localhost:5000/search
 ## Response
 
 The API will return a JSON response containing a list of links to pages relevant to the query.
+
+## Using the Hosted Version
+
+Alternatively you could use the hosted version of the search enhancement application hosted on Google Cloud Run at the following URL: https://search-enhancement-571422257357.africa-south1.run.app/search.
+
+You can make a POST request to the above endpoint as follows:
+
+```
+POST https://search-enhancement-571422257357.africa-south1.run.app/search
+```
+
+#### Request Headers
+
+- Content-Type: application/json
+
+#### Request Body
+
+- Include your search query in the body of the request as JSON. For example:
+
+```
+{
+    "query": "What is the C programming language?"
+}
+```
