@@ -6,11 +6,13 @@ class QuerySummarize:
     def __init__(self):
         # Load the SpaCy NER model
         self.nlp = spacy.load("en_core_web_sm")
+        # Define common question words
+        self.question_words = {"what", "why", "how", "when", "where", "which", "who", "whom", "whose"}
 
     def normalize(self, text):
         text = text.lower().strip()
         text = re.sub(r'[^\w\s]', '', text)
-        # Lowercase and string any extra spaces
+        # Lowercase and strip any extra spaces
         return text
 
     def remove_substrings(self, terms):
@@ -45,7 +47,22 @@ class QuerySummarize:
 
         return ordered_keywords
 
-    def summerize(self, text):
+    def extract_question_related_keywords(self, text):
+        tokens = text.split()
+        question_related_keywords = []
+
+        for i, token in enumerate(tokens):
+            normalized_token = self.normalize(token)
+            if normalized_token in self.question_words:
+                question_related_keywords.append(normalized_token)
+                # Add the next token if it exists (to capture adjacent keywords)
+                if i + 1 < len(tokens):
+                    next_token = self.normalize(tokens[i + 1])
+                    question_related_keywords.append(next_token)
+
+        return question_related_keywords
+
+    def summarize(self, text):
         # Named Entity Recognition using SpaCy
         doc = self.nlp(text)
         entities = [self.normalize(ent.text) for ent in doc.ents]  # Normalize entities
@@ -64,7 +81,13 @@ class QuerySummarize:
         # Remove substrings (if one word is a substring of another, remove the shorter one) 
         keywords = self.remove_substrings(entities + [term for term, score in top_10_terms])
 
+        # Extract question-related keywords
+        question_related_keywords = self.extract_question_related_keywords(text)
+
+        # Combine all keywords and remove duplicates
+        all_keywords = list(set(keywords + question_related_keywords))
+
         # Get the keywords in the original order they appeared in the text
-        ordered_keywords = self.get_keywords_in_original_order(text, keywords)
+        ordered_keywords = self.get_keywords_in_original_order(text, all_keywords)
 
         return ordered_keywords
