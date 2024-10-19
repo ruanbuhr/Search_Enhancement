@@ -32,18 +32,18 @@ loaded_model.load_state_dict(checkpoint['model_state_dict'])
 
 loaded_model.eval()
 
-def rank_snippets(query, snippets):
+def rank_snippets(query, google_results):
     query_embedding = sentence_transformer.encode(query, convert_to_tensor=True)
-    snippet_scores = []
+    link_scores = []
 
-    for snippet in snippets:
+    for link, snippet in google_results.items():
         snippet_embedding = sentence_transformer.encode(snippet, convert_to_tensor=True)
         score = loaded_model(query_embedding, snippet_embedding).item()
-        snippet_scores.append((snippet, score))
+        link_scores.append((link, score))
 
-    # Sort snippets by scores in descending order
-    ranked_snippets = sorted(snippet_scores, key=lambda x: x[1], reverse=True)
-    return ranked_snippets
+    # Sort link by scores in descending order
+    ranked_link = sorted(link_scores, key=lambda x: x[1], reverse=True)
+    return ranked_link
 
 # Example usage:
 # query = "How is AI impacting industries and where does deep learning fit in?"
