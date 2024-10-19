@@ -30,12 +30,12 @@ def search():
         return jsonify({"error": "Query not found."}), 400
     
     try:
-        keywords = query_summarizer.summerize(query)
+        keywords = query_summarizer.summarize(query)
         keyword_string = ' '.join(keywords)
 
         results = google_search(keyword_string)
 
-        enhanced_results = rank_search_results(query, results)
+        enhanced_results = rank_snippets(query, results)
 
         return jsonify(enhanced_results), 200
     

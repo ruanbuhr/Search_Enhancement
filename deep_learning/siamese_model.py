@@ -41,24 +41,10 @@ def rank_snippets(query, google_results):
         score = loaded_model(query_embedding, snippet_embedding).item()
         link_scores.append((link, score))
 
-    # Sort link by scores in descending order
     ranked_link = sorted(link_scores, key=lambda x: x[1], reverse=True)
-    return ranked_link
 
-# Example usage:
-# query = "How is AI impacting industries and where does deep learning fit in?"
-# snippets = [
-#     "AI is transforming industries across various sectors.",
-#     "Machine learning is a subset of artificial intelligence.",
-#     "Climate change affects the environment significantly.",
-#     "Deep learning is a branch of machine learning.",
-#     "Reinforcement learning is about learning from interaction.",
-#     "The ocean is full of fish",
-#     "Trash cans are used for storage"
-# ]
-
-# ranked_results = rank_snippets(query, snippets)
-# for snippet, score in ranked_results:
-#     print(f"Snippet: {snippet}, Score: {score:.4f}")
+    # Return only the links
+    ranked_links_only = [link for link, score in ranked_link]
+    return ranked_links_only
 
 loaded_model.eval()

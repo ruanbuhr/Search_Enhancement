@@ -15,3 +15,5 @@ docker-compose.yml
 .gitignore
 
 *.md
+
+deep_learning/siamese_transformer_model.py
