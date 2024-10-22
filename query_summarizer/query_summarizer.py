@@ -78,8 +78,6 @@ class QuerySummarize:
     def summarize(self, text):
         """Summarize the text to extract main keywords."""
         doc = self.nlp(text)
-        for ent in doc:
-            print(ent)
         entities = [self.normalize(ent.text) for ent in doc.ents]
 
         # Extract keywords and remove redundant ones
