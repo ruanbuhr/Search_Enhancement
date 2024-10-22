@@ -13,7 +13,3 @@ MiniLM (Minimal Language Model) is a lightweight transformer model that uses a s
 ## Embedding
 
 The model produces 384-dimensional embeddings. THis makes the model fast and require less memory that that of a higher dimension model.
-
-## Distance Metric
-
-The distance metric used to evaluate the similarity between sentences is the Cosine similarity. It’s scale-invariant, meaning it focuses on the angle between vectors rather than their magnitude. This is ideal when you want to assess the semantic similarity regardless of the vector’s length. 
