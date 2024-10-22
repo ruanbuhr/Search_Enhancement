@@ -1,93 +1,95 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
 import spacy
 import re
+from collections import Counter, defaultdict
 
 class QuerySummarize:
     def __init__(self):
-        # Load the SpaCy NER model
+        # Load SpaCy NER model and stop words
         self.nlp = spacy.load("en_core_web_sm")
-        # Define common question words
+        self.stopwords = set(spacy.lang.en.stop_words.STOP_WORDS)
         self.question_words = {"what", "why", "how", "when", "where", "which", "who", "whom", "whose"}
 
     def normalize(self, text):
+        """Normalize text by lowering case and removing punctuation."""
         text = text.lower().strip()
-        text = re.sub(r'[^\w\s]', '', text)
-        # Lowercase and strip any extra spaces
+        text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
         return text
 
+    def tokenize(self, text):
+        """Tokenize text while filtering out stopwords."""
+        return [word for word in self.normalize(text).split() if word and word not in self.stopwords]
+
     def remove_substrings(self, terms):
-        # Normalize all terms first
+        """Remove terms that are substrings of longer terms."""
         terms = [self.normalize(term) for term in terms]
-
-        # Sort terms by length (longest to shortest) to handle substrings
-        terms.sort(key=len, reverse=True)  
+        terms.sort(key=len, reverse=True)
         filtered_terms = []
-
         for term in terms:
             if not any(term in longer_term for longer_term in filtered_terms):
-                filtered_terms.append(term)  # Add term if it's not a substring
-
+                filtered_terms.append(term)
         return filtered_terms
 
-    def get_keywords_in_original_order(self, text, keywords):
-        normalized_text = self.normalize(text)  # Normalize the text for substring matching
+    def extract_phrases(self, text):
+        """Extract meaningful phrases from text using SpaCy's POS tags."""
+        doc = self.nlp(text)
+        phrases = []
+        for chunk in doc.noun_chunks:
+            phrase = self.normalize(chunk.text)
+            if phrase not in self.stopwords:
+                phrases.append(phrase)
+        return phrases
+
+    def calculate_word_scores(self, phrases):
+        """Calculate word scores based on frequency and co-occurrence in phrases."""
+        word_freq = Counter()
+        word_degree = defaultdict(int)
+
+        for phrase in phrases:
+            words = phrase.split()
+            for word in words:
+                word_freq[word] += 1
+                word_degree[word] += len(words) - 1
+
+        word_scores = {word: degree / freq for word, (degree, freq) in 
+                       zip(word_degree.keys(), zip(word_degree.values(), word_freq.values()))}
+        return word_scores
+
+    def extract_keywords(self, text):
+        """Extract and rank keywords from text."""
+        phrases = self.extract_phrases(text)
+        word_scores = self.calculate_word_scores(phrases)
+        phrase_scores = {phrase: sum(word_scores.get(word, 0) for word in phrase.split()) for phrase in phrases}
+        sorted_phrases = sorted(phrase_scores.items(), key=lambda x: x[1], reverse=True)
+        keywords = [phrase for phrase, _ in sorted_phrases]
+        return keywords
+
+    def find_positions(self, text, keywords):
+        """Find the starting index of each keyword/phrase in the original text."""
         keyword_positions = []
-
         for keyword in keywords:
-            # Find the position of the keyword in the normalized text
-            position = normalized_text.find(keyword)
-            if position != -1:
-                keyword_positions.append((keyword, position))
-
-        # Sort keywords by their position in the text
+            # Use regex to find the first occurrence of the keyword/phrase
+            match = re.search(r'\b' + re.escape(keyword) + r'\b', text, re.IGNORECASE)
+            if match:
+                keyword_positions.append((keyword, match.start()))
+        # Sort by the starting index to preserve original order
         keyword_positions.sort(key=lambda x: x[1])
-
-         # Return the keywords in order of their appearance
-        ordered_keywords = [keyword for keyword, pos in keyword_positions]
-
-        return ordered_keywords
-
-    def extract_question_related_keywords(self, text):
-        tokens = text.split()
-        question_related_keywords = []
-
-        for i, token in enumerate(tokens):
-            normalized_token = self.normalize(token)
-            if normalized_token in self.question_words:
-                question_related_keywords.append(normalized_token)
-                # Add the next token if it exists (to capture adjacent keywords)
-                if i + 1 < len(tokens):
-                    next_token = self.normalize(tokens[i + 1])
-                    question_related_keywords.append(next_token)
-
-        return question_related_keywords
+        return [kw for kw, _ in keyword_positions]
 
     def summarize(self, text):
-        # Named Entity Recognition using SpaCy
+        """Summarize the text to extract main keywords."""
         doc = self.nlp(text)
-        entities = [self.normalize(ent.text) for ent in doc.ents]  # Normalize entities
+        for ent in doc:
+            print(ent)
+        entities = [self.normalize(ent.text) for ent in doc.ents]
 
-        # TF-IDF Vectorization
-        vectorizer = TfidfVectorizer(stop_words='english', max_features=10)  # Limit to top 10 features
-        tfidf_matrix = vectorizer.fit_transform([text]) 
+        # Extract keywords and remove redundant ones
+        keywords = self.extract_keywords(text)
+        keywords = self.remove_substrings(entities + keywords)
 
-        # Extract top terms with highest TF-IDF scores
-        feature_names = vectorizer.get_feature_names_out()
-        tfidf_scores = tfidf_matrix.toarray()[0]
+        # Remove redundant keywords (substrings)
+        keywords = [kw for kw in keywords if kw not in self.stopwords]
 
-        # Extract top 10 terms, and normalize
-        top_10_terms = [(self.normalize(feature_names[i]), tfidf_scores[i]) for i in tfidf_scores.argsort()[-10:]]
+        # Ensure keywords are ordered by appearance in the original text
+        keywords = self.find_positions(text, keywords)
 
-        # Remove substrings (if one word is a substring of another, remove the shorter one) 
-        keywords = self.remove_substrings(entities + [term for term, score in top_10_terms])
-
-        # Extract question-related keywords
-        question_related_keywords = self.extract_question_related_keywords(text)
-
-        # Combine all keywords and remove duplicates
-        all_keywords = list(set(keywords + question_related_keywords))
-
-        # Get the keywords in the original order they appeared in the text
-        ordered_keywords = self.get_keywords_in_original_order(text, all_keywords)
-
-        return ordered_keywords
+        return keywords
