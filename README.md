@@ -2,6 +2,16 @@
 
 This API provides an endpoint that processes a user's long-form query, extracts key points, retrieves search results via the Google Search API, and returns the relevant results.
 
+## Contributors
+
+- Ruan Buhr (26440873)
+- David Genders (25935410)
+- Marcell Muller (23603097)
+
+## Dataset used
+
+the dataset used to train the deep learning model can be found at: https://huggingface.co/datasets/sentence-transformers/stsb
+
 ## Getting Started
 
 Follow these instructions to run the API server and make requests.
