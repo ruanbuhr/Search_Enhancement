@@ -8,7 +8,7 @@ This API provides an endpoint that processes a user's long-form query, extracts 
 - David Genders (25935410)
 - Marcell Muller (23603097)
 
-## Dataset used
+## Dataset Used
 
 the dataset used to train the deep learning model can be found at: https://huggingface.co/datasets/sentence-transformers/stsb
 
